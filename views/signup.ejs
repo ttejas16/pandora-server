@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang=""en>
+    <head>
+        <title>
+            SignUp Page
+        </title>
+    </head>
+    <body>
+        <form action="/auth/signup" method="post">
+
+
+            <input type="text" placeholder="Email" required name ="email"/>
+            <input type="text" required name="username" />
+            <input type="password"required placeholder="password" name="password1"/>
+            <input type="password" required placeholder="password" name="password2"/>
+            
+            <input type ="submit" value="Create Account"/>
+        </form>
+        <a href="#" onclick="location.href='/auth/login';"> Already A User? </a>
+    </body>
+</html>

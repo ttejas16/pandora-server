@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Enrollements {
+  enrollId  String    @id @db.Uuid
+  topicId   String    @db.Uuid
+  userId    String    @db.Uuid
+  joinedAt DateTime? @db.Timestamp(6)
+  Topics    Topics    @relation(fields: [topicId], references: [topicId], onDelete: Cascade, map: "topicId")
+  User      User      @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
+}
+
+model Questions {
+  qId         String        @id @db.Uuid
+  testId      String        @db.Uuid
+  question    String
+  options     Json          @db.Json
+  answer      String
+  createdAt  DateTime      @db.Timestamp(6)
+  Test        Test          @relation(fields: [testId], references: [testId], onDelete: Cascade, map: "testId")
+  UserAnswers UserAnswers[]
+}
+
+model Test {
+  testId       String         @id @db.Uuid
+  topicId      String?        @db.Uuid
+  userId       String?        @db.Uuid
+  name         String?
+  description  String?
+  startTime    DateTime?      @db.Timestamp(6)
+  endTime      DateTime?      @db.Timestamp(6)
+  createdAt   DateTime?      @db.Timestamp(6)
+  Questions    Questions[]
+  Topics       Topics?        @relation(fields: [topicId], references: [topicId], onDelete: Cascade, map: "topicId")
+  User         User?          @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
+  UserAttempts UserAttempts[]
+}
+
+model Topics {
+  topicId      String         @id @db.Uuid
+  userId       String         @db.Uuid
+  topicName    String
+  isPublic     Boolean        @default(true)
+  topicCode    String
+  createdAt   DateTime       @db.Timestamp(6)
+  Enrollements Enrollements[]
+  Test         Test[]
+  User         User           @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
+}
+
+model User {
+  userId       String         @id @db.Uuid
+  email        String
+  username     String?
+  password     String
+  createdAt   DateTime?      @db.Timestamp(6)
+  Enrollements Enrollements[]
+  Test         Test[]
+  Topics       Topics[]
+  UserAttempts UserAttempts[]
+}
+
+model UserAnswers {
+  attemptId    String       @db.Uuid
+  qId          String       @db.Uuid
+  answer       String
+  userAnsId    String       @id @db.Uuid
+  UserAttempts UserAttempts @relation(fields: [attemptId], references: [attemptId], onDelete: Cascade, map: "attemptId")
+  Questions    Questions    @relation(fields: [qId], references: [qId], onDelete: Cascade, map: "qId")
+}
+
+model UserAttempts {
+  attemptId    String        @id @db.Uuid
+  testId       String        @db.Uuid
+  userId       String        @db.Uuid
+  startedAt   DateTime      @db.Timestamp(6)
+  completedAt DateTime      @db.Timestamp(6)
+  score        BigInt
+  UserAnswers  UserAnswers[]
+  Test         Test          @relation(fields: [testId], references: [testId], onDelete: Cascade, map: "testId")
+  User         User          @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
+}
