@@ -1,0 +1,42 @@
+POST http://localhost:3000/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "splinter@gmail.com",
+    "password": "Splinter@wolf1"
+}
+
+###
+POST http://localhost:3000/auth/signup HTTP/1.1
+Content-Type: application/json
+
+{   
+    "email":"splinter@gmail.com",
+    "username":"splinter",
+    "password":"Splinter@wolf1",
+    "confirmPassword":"Splinter@wolf1"
+}
+
+###
+GET http://localhost:3000/auth/getUser HTTP/1.1
+Content-Type: application/json
+Cookie: accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNwbGludGVyIiwiaWQiOiIyZGMyMzgxZS04YjQzLTQyMWUtOTFjZi0zM2MwMjVlOTQ3NDUiLCJpYXQiOjE3NDAzMzE1NTYsImV4cCI6MTc0MDMzMjE1Nn0.xDjyGb_qQEtIrYOWGVJ_TDhw8aHhlMMAECb0lPnR5i0; Path=/; Expires=Sun, 23 Feb 2025 18:30:56 GMT; HttpOnly; Secure; SameSite=None
+
+
+
+###
+GET http://localhost:3000/auth/checkEmail HTTP/1.1
+Content-Type: application/json
+
+{
+    "email":"splinter@gmail.com"
+}
+
+
+###
+GET http://localhost:3000/auth/checkUserName HTTP/1.1
+Content-Type: application/json
+
+{
+    "username":"splinter"
+}

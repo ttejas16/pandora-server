@@ -50,7 +50,7 @@ CREATE TABLE "Topics" (
 CREATE TABLE "User" (
     "userId" UUID NOT NULL,
     "email" TEXT NOT NULL,
-    "username" TEXT,
+    "username" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "createdAt" TIMESTAMP(6),
 
@@ -78,6 +78,12 @@ CREATE TABLE "UserAttempts" (
 
     CONSTRAINT "UserAttempts_pkey" PRIMARY KEY ("attemptId")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- AddForeignKey
 ALTER TABLE "Enrollements" ADD CONSTRAINT "topicId" FOREIGN KEY ("topicId") REFERENCES "Topics"("topicId") ON DELETE CASCADE ON UPDATE CASCADE;

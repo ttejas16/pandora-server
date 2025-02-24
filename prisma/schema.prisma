@@ -55,9 +55,9 @@ model Topics {
 }
 
 model User {
-  userId       String         @id @db.Uuid
-  email        String
-  username     String?
+  userId       String         @id @default(uuid()) @db.Uuid
+  email        String         @unique
+  username     String         @unique        
   password     String
   createdAt   DateTime?      @db.Timestamp(6)
   Enrollements Enrollements[]
