@@ -1,23 +1,12 @@
-const express = require('express');
 const jwt =  require('jsonwebtoken');
-const fs = require('fs').promises;
-const path = require('path');
-const Pool = require('../dbConfig');
-import { PrismaClient } from '@prisma/client';
-import { decode } from 'punycode';
+const { prisma } = require('../prisma/prisma');
 
-const prisma = new PrismaClient();
 const users = {
     "john_doe": { "name": "John Doe", "email": "john@example.com" },
     "jane_doe": { "name": "Jane Doe", "email": "jane@example.com" },
     "alice_smith": { "name": "Alice Smith", "email": "alice@example.com" },
     "bob_jones": { "name": "Bob Jones", "email": "bob@example.com" }
 };
-
-function createToken(payload) {
-    const token = jwt.sign({ payload }, process.env.SECRET_KEY, { expiresIn: '10mins' });
-    return token;
-}
 
 async function profile(req,res){
     try {

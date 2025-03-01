@@ -1,8 +1,6 @@
-const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../prisma/prisma');
 
 
 function createToken(payload) {
@@ -190,11 +188,11 @@ async function signup(req, res) {
 
   if (user != null) {
     if (user.username == username) {
-      res.status(200).json({ success: false, msg: "The username is not avaliable" });
+      res.status(400).json({ success: false, msg: "The username is not avaliable" });
       return;
     }
     else if (user.email == email) {
-      res.status(200).json({ success: false, msg: "The email address is already registered" });
+      res.status(400).json({ success: false, msg: "The email address is already registered" });
       return;
     }
   }

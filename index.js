@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 // const { exampleRouter } = require("./routes/exampleRouter");
 const authRouter = require("./routes/authRouter");
 const { verifyToken } = require("./middleware/verifyToken");
+const { testDatabase } = require('./prisma/prisma');
 // const userRouter = require("./routes/userRouter");
 
 const port = 3000;
@@ -38,4 +39,5 @@ app.get("/", (req, res) => {
 
 app.listen(port, () => {
     console.log(`server is listening at port ${port}`);
+    testDatabase();
 })
