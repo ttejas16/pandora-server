@@ -7,13 +7,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Enrollements {
-  enrollId  String    @id @db.Uuid
+
+model User {
+  userId       String         @id @default(uuid()) @db.Uuid
+  email        String         @unique
+  username     String         @unique        
+  password     String        
+  createdAt    DateTime       @db.Timestamp(6) @default(now())
+  topics       UserTopics[]
+  Test         Test[]
+  UserAttempts UserAttempts[]
+  createdTopics Topic[]   @relation("TopicOwner")
+}
+
+model Topic {
+  topicId      String         @id @default(uuid()) @db.Uuid
+  ownerId      String         @db.Uuid 
+  owner        User           @relation("TopicOwner", fields: [ownerId], references: [userId], onDelete: Cascade, map: "userId")
+  topicName    String         
+  topicSubtitle String        
+  isPublic     Boolean        
+  topicCode    String         
+  thumbnailUrl String         
+  createdAt    DateTime       @db.Timestamp(6) @default(now())
+  users        UserTopics[]
+  Test         Test[]
+}
+
+model UserTopics {
+  topic     Topic    @relation(fields: [topicId], references: [topicId], onDelete: Cascade, map: "topicId")
   topicId   String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
   userId    String    @db.Uuid
-  joinedAt DateTime? @db.Timestamp(6)
-  Topics    Topics    @relation(fields: [topicId], references: [topicId], onDelete: Cascade, map: "topicId")
-  User      User      @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
+  joinedAt  DateTime? @db.Timestamp(6)
+  @@id([userId, topicId])
 }
 
 model Questions {
@@ -29,40 +56,16 @@ model Questions {
 
 model Test {
   testId       String         @id @db.Uuid
-  topicId      String?        @db.Uuid
-  userId       String?        @db.Uuid
-  name         String?
-  description  String?
+  topicId      String        @db.Uuid
+  userId       String        @db.Uuid
+  name         String
+  description  String
   startTime    DateTime?      @db.Timestamp(6)
   endTime      DateTime?      @db.Timestamp(6)
   createdAt   DateTime?      @db.Timestamp(6)
   Questions    Questions[]
-  Topics       Topics?        @relation(fields: [topicId], references: [topicId], onDelete: Cascade, map: "topicId")
-  User         User?          @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
-  UserAttempts UserAttempts[]
-}
-
-model Topics {
-  topicId      String         @id @db.Uuid
-  userId       String         @db.Uuid
-  topicName    String
-  isPublic     Boolean        @default(true)
-  topicCode    String
-  createdAt   DateTime       @db.Timestamp(6)
-  Enrollements Enrollements[]
-  Test         Test[]
-  User         User           @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
-}
-
-model User {
-  userId       String         @id @default(uuid()) @db.Uuid
-  email        String         @unique
-  username     String         @unique        
-  password     String
-  createdAt   DateTime?      @db.Timestamp(6)
-  Enrollements Enrollements[]
-  Test         Test[]
-  Topics       Topics[]
+  Topic       Topic        @relation(fields: [topicId], references: [topicId], onDelete: Cascade, map: "topicId")
+  User         User          @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
   UserAttempts UserAttempts[]
 }
 

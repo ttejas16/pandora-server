@@ -1,10 +1,11 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../prisma/prisma');
-
+const COOKIE_EXPIRY_TIME = 60 * 60 * 2;
+const JWT_EXPIRY_TIME = 60 * 60 * 1.5;
 
 function createToken(payload) {
-  const token = jwt.sign({ ...payload }, process.env.SECRET_KEY, { expiresIn: '10mins' });
+  const token = jwt.sign({ ...payload }, process.env.SECRET_KEY, { expiresIn: JWT_EXPIRY_TIME });
   return token;
 
 }
@@ -85,13 +86,6 @@ async function login(req, res) {
   const username = req.body.username;
   const password = req.body.password;
 
-  /*   INTIAL CODE FOR TESTING AUTH
-   console.log(username,password)
-   if(username != password){
-       res.status(400).json({ success: false, msg: "Invalid credentials" });
-       return;
-   }
-     */
 
   if (!username || !password) {
     res.status(400).json({ success: false, msg: "Empty credentials are not allowed!" });
@@ -125,14 +119,14 @@ async function login(req, res) {
     }
 
     const token = createToken({ username: user.username, id: user.userId });
-    // console.log("THis is login route token"+token)
+    
     res.cookie('accessToken', token, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      expires: new Date(Date.now() + 65 * 60 * 1000)
+      expires: new Date(Date.now() + COOKIE_EXPIRY_TIME)
     });
-    // res.status(200).json({ success: true, msg: "Valid credentials" });
+    
 
   } catch (err) {
     console.log(err)

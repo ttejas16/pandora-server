@@ -6,6 +6,16 @@ Content-Type: application/json
     "password": "Splinter@wolf1"
 }
 
+
+###
+POST http://localhost:3000/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "test@gmail.com",
+    "password": "Test@12345678"
+}
+
 ###
 POST http://localhost:3000/auth/signup HTTP/1.1
 Content-Type: application/json
@@ -39,4 +49,35 @@ Content-Type: application/json
 
 {
     "username":"splinter"
+}
+
+
+###
+POST http://localhost:3000/user/createTopic HTTP/1.1
+Content-Type: "application/json"
+Cookie: accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNwbGludGVyIiwiaWQiOiIyZGMyMzgxZS04YjQzLTQyMWUtOTFjZi0zM2MwMjVlOTQ3NDUiLCJpYXQiOjE3NDA4MzQzOTgsImV4cCI6MTc0MDgzNDk5OH0.VEbZTM4iDQThQCFVtvXYHrcSxumByc8CVJ-uZ4F67bk; Path=/; Expires=Sat, 01 Mar 2025 14:11:38 GMT; HttpOnly; Secure; SameSite=None
+
+{
+    "foo":"bar"
+}
+
+
+### 
+GET http://localhost:3000/user/getTopicUsers?topicId=9a0c2251-95e6-460b-b20f-df4e0731c5ff HTTP/1.1
+Content-Type: "application/json"
+Cookie: accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlRlc3QiLCJpZCI6ImExYjI3Yzc4LTg3OWMtNDg0Mi1hNjYzLWNhYmZiNzY4OGJjMCIsImlhdCI6MTc0MDg1MjE0NSwiZXhwIjoxNzQwODU3NTQ1fQ.cTE5EnbVMzlrX1dNQ3_yvjeIjTesynImG2BhDFxnzTI; Path=/; Expires=Sat, 01 Mar 2025 18:02:32 GMT; HttpOnly; Secure; SameSite=None
+
+
+###
+GET http://localhost:3000/user/getTopics
+Content-Type: "application/json"
+Cookie: accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlRlc3QiLCJpZCI6ImExYjI3Yzc4LTg3OWMtNDg0Mi1hNjYzLWNhYmZiNzY4OGJjMCIsImlhdCI6MTc0MDg1MjE0NSwiZXhwIjoxNzQwODU3NTQ1fQ.cTE5EnbVMzlrX1dNQ3_yvjeIjTesynImG2BhDFxnzTI; Path=/; Expires=Sat, 01 Mar 2025 18:02:32 GMT; HttpOnly; Secure; SameSite=None
+
+###
+POST http://localhost:3000/user/joinTopic HTTP/1.1
+Content-Type: application/json
+Cookie: accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNwbGludGVyIiwiaWQiOiIwZDI4YjQzMC03YTFjLTRkZDAtODY0ZC05YzIwMWI5ZDgwZTUiLCJpYXQiOjE3NDA4NDk0NjcsImV4cCI6MTc0MDg1MDA2N30.hKhFk3jA-RHAsDoeb47mg0fC_c558ACRIZ-tSVkkwMk; Path=/; Expires=Sat, 01 Mar 2025 18:22:47 GMT; HttpOnly; Secure; SameSite=None
+
+{
+    "topicCode": "56w7bu-09J"
 }

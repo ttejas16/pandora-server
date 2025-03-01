@@ -1,12 +1,11 @@
 const express = require('express');
-
-
 const userRouter = express.Router();
+
 const userController = require('../controllers/userController');
-const { verifyToken } = require('../middleware/verifyToken');
 
-// authRouter.use(verifyToken);/
-userRouter.get('/dashboard',verifyToken,userController.profile);
-
+userRouter.post('/createTopic', userController.createTopic);
+userRouter.get('/getTopics', userController.getTopicsByUserId);
+userRouter.post('/joinTopic', userController.joinTopicByCode);
+userRouter.get('/getTopicUsers', userController.getUsersByTopicId);
 
 module.exports = userRouter;

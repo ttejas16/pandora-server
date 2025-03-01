@@ -1,5 +1,6 @@
-const jwt =  require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
 const { prisma } = require('../prisma/prisma');
+const { nanoid } = require('nanoid');
 
 const users = {
     "john_doe": { "name": "John Doe", "email": "john@example.com" },
@@ -8,101 +9,177 @@ const users = {
     "bob_jones": { "name": "Bob Jones", "email": "bob@example.com" }
 };
 
-async function profile(req,res){
-    try {
-        console.log(req.cookies)
-        const token = req.cookies.accessToken;
-        const decoded = jwt.verify(token, process.env.SECRET_KEY);
-        console.log(" this is userController decoded jwt"+ decoded)
-        const username = decoded.username ;
-        const userDetails = users[username];
+// async function profile(req, res) {
+//     try {
+//         console.log(req.cookies)
+//         const token = req.cookies.accessToken;
+//         const decoded = jwt.verify(token, process.env.SECRET_KEY);
+//         console.log(" this is userController decoded jwt" + decoded)
+//         const username = decoded.username;
+//         const userDetails = users[username];
 
-        if (!userDetails) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+//         if (!userDetails) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
 
-        // const newToken = createToken({ username });
-        // res.cookie('accessToken', newToken, {
-        //     httpOnly: true,
-        //     secure: true,
-        //     sameSite: "none",
-        //     expires: new Date(Date.now() + 65 * 60 * 1000)
-        // });
+//         // const newToken = createToken({ username });
+//         // res.cookie('accessToken', newToken, {
+//         //     httpOnly: true,
+//         //     secure: true,
+//         //     sameSite: "none",
+//         //     expires: new Date(Date.now() + 65 * 60 * 1000)
+//         // });
 
-        res.json({ userDetails });
-    } catch (error) {
-        console.log(error)
-        res.status(401).json({ message: 'Unauthorized' });
-    }
-}
+//         res.json({ userDetails });
+//     } catch (error) {
+//         console.log(error)
+//         res.status(401).json({ message: 'Unauthorized' });
+//     }
+// }
 
-async function createTopic(req,res){
+async function createTopic(req, res) {
+    let { title, subTitle, type } = req.body;
 
-    let{title,description,type} = req.body;
-    token = req.cookies.accessToken;
-    const decoded = jwt.verify(token,process.env.SECRET_KEY);
-    const userId = decoded.id;
-
-    if(!title || !description || !type ){
-        res.status(400).json({ success: false, msg: "Empty credentials are not allowed" });
+    if (type != "public" && type != "private") {
+        res.status(400).json({ success: false, msg: "Unknown topic type" });
         return;
     }
+
+    if (!title || !subTitle || !type) {
+        res.status(400).json({ success: false, msg: "Empty fields are not allowed" });
+        return;
+    }
+
     const user = await prisma.user.findUnique({
-        where:{
-            userId : id
+        where: {
+            userId: req.user.id
         }
     });
 
-    if(user == null){
+    if (!user) {
         res.status(401).json({ success: false, msg: "Unauthorised" });
         return;
     }
-    const topic = await prisma.topics.findUnique({
-        where :{
-           topicName: title,
-           userId : id
+
+    const generatedTopicCode = nanoid(10);
+
+    const topic = await prisma.topic.create({
+        data: {
+            topicName: title,
+            topicSubtitle: subTitle,
+            isPublic: type == "public" ? true : false,
+            ownerId: req.user.id,
+            thumbnailUrl: "https://www.freepik.com/free-photo/galaxy-nature-aesthetic-background-starry-sky-mountain-remixed-media_17226410.htm#fromView=search&page=1&position=4&uuid=9e700a6d-69fa-439e-9ad0-01adc9fe9b90&query=space",
+            topicCode: generatedTopicCode,
+        }
+    })
+
+    const _ = await prisma.userTopics.create({
+        data: {
+            userId: req.user.id,
+            topicId: topic.topicId,
+        }
+    })
+
+    res.status(200).json({ success: true, data: topic });
+}
+
+async function joinTopicByCode(req, res) {
+    const topicCode = req.body.topicCode;
+    // console.log(req.body);
+    if (!req.user.id) {
+        res.status(401).json({ success: false, msg: "Unauthorised" });
+        return;
+    }
+
+    if (!topicCode) {
+        res.status(400).json({ success: false, msg: "Empty fields are not allowed!" });
+        return;
+    }
+
+    const topic = await prisma.topic.findFirst({
+        where: { topicCode: topicCode }
+    });
+
+    if (!topic) {
+        res.status(400).json({ success: false, msg: "Topic does not exist!" });
+        return;
+    }
+
+    const _ = await prisma.userTopics.create({
+        data: {
+            userId: req.user.id,
+            topicId: topic.topicId,
+        }
+    })
+
+    res.status(200).json({ success: true, data: topic });
+}
+
+
+async function getTopicsByUserId(req, res) {
+    if (!req.user.id) {
+        res.status(401).json({ success: false, msg: "Unauthorised" });
+        return;
+    }
+
+    const topics = await prisma.user.findUnique({
+        where: { userId: req.user.id },
+        include: {
+            topics: {
+                include: { topic: { omit: { topicId: true } } },
+                omit: { userId: true, joinedAt: true }
+            }
+        },
+        omit: {
+            username: true,
+            email: true,
+            password: true,
+            createdAt: true
+        } // only get userId rest info is not needed
+
+    })
+
+    const parsedTopics = topics.topics.map(t => { 
+        return { topicId: t.topicId, ...t.topic };
+    })
+
+    res.json({ success: true, data: parsedTopics });
+}
+
+
+async function getUsersByTopicId(req, res) {
+    if (!req.user.id) {
+        res.status(401).json({ success: false, msg: "Unauthorised" });
+        return;
+    }
+
+    const topicId = req.query.topicId;
+
+    if (!topicId) {
+        res.status(400).json({ success: false, msg: "Empty fields are not allowed!" });
+        return;
+    }
+
+    const result = await prisma.topic.findUnique({
+        where: { topicId: topicId },
+        include: {
+            users: {
+                include: { user: { select: { username: true, email: true, userId:true  } } }
+            }
         }
     });
 
-    if(topic != null){
-        res.status(400).json({ success: false, msg: `You Have Already Existing Topic:  ${title} `});
-        return;
-    }
-    let isPublic = false;
-    ///NOT SURE CODE
-        if(type == "public")
-        {
-            isPublic = true;
-        }
-    const topicCode = generateCode()
-    try{
+    const topicUsers = result.users.map(u => u.user);
+    const parsedResult = { ...result, users:topicUsers }
 
-        const _ = await prisma.topics.create({
-            data:{
-                userId : id,
-                topicName : title,
-                description : description,
-                isPublic : isPublic,
-                topicCode : topicCode,
-                createdAt : new Date()
-
-            },
-          });
-    } catch(err){
-    
-        console.log(err);
-        res.status(500).json({ success: false, msg: "Internal server error" });
-        return;
-    }
-
-    res.status(200).json({ success: true, msg: topicCode});
-
-
-
-    
+    res.status(200).json({ success: true, data: parsedResult });
 }
-async function dbCheck(req,res) {
-    
-    
-}
-module.exports = {profile};
+
+
+module.exports = {
+    createTopic,
+    getTopicsByUserId,
+    joinTopicByCode,
+    getUsersByTopicId
+};

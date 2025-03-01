@@ -1,11 +1,35 @@
 -- CreateTable
-CREATE TABLE "Enrollements" (
-    "enrollId" UUID NOT NULL,
+CREATE TABLE "User" (
+    "userId" UUID NOT NULL,
+    "email" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("userId")
+);
+
+-- CreateTable
+CREATE TABLE "Topic" (
+    "topicId" UUID NOT NULL,
+    "ownerId" UUID NOT NULL,
+    "topicName" TEXT NOT NULL,
+    "topicSubtitle" TEXT NOT NULL,
+    "isPublic" BOOLEAN NOT NULL,
+    "topicCode" TEXT NOT NULL,
+    "thumbnailUrl" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Topic_pkey" PRIMARY KEY ("topicId")
+);
+
+-- CreateTable
+CREATE TABLE "UserTopics" (
     "topicId" UUID NOT NULL,
     "userId" UUID NOT NULL,
     "joinedAt" TIMESTAMP(6),
 
-    CONSTRAINT "Enrollements_pkey" PRIMARY KEY ("enrollId")
+    CONSTRAINT "UserTopics_pkey" PRIMARY KEY ("userId","topicId")
 );
 
 -- CreateTable
@@ -23,38 +47,15 @@ CREATE TABLE "Questions" (
 -- CreateTable
 CREATE TABLE "Test" (
     "testId" UUID NOT NULL,
-    "topicId" UUID,
-    "userId" UUID,
-    "name" TEXT,
-    "description" TEXT,
+    "topicId" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
     "startTime" TIMESTAMP(6),
     "endTime" TIMESTAMP(6),
     "createdAt" TIMESTAMP(6),
 
     CONSTRAINT "Test_pkey" PRIMARY KEY ("testId")
-);
-
--- CreateTable
-CREATE TABLE "Topics" (
-    "topicId" UUID NOT NULL,
-    "userId" UUID NOT NULL,
-    "topicName" TEXT NOT NULL,
-    "isPublic" BOOLEAN NOT NULL DEFAULT true,
-    "topicCode" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(6) NOT NULL,
-
-    CONSTRAINT "Topics_pkey" PRIMARY KEY ("topicId")
-);
-
--- CreateTable
-CREATE TABLE "User" (
-    "userId" UUID NOT NULL,
-    "email" TEXT NOT NULL,
-    "username" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(6),
-
-    CONSTRAINT "User_pkey" PRIMARY KEY ("userId")
 );
 
 -- CreateTable
@@ -86,22 +87,22 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- AddForeignKey
-ALTER TABLE "Enrollements" ADD CONSTRAINT "topicId" FOREIGN KEY ("topicId") REFERENCES "Topics"("topicId") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Topic" ADD CONSTRAINT "userId" FOREIGN KEY ("ownerId") REFERENCES "User"("userId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Enrollements" ADD CONSTRAINT "userId" FOREIGN KEY ("userId") REFERENCES "User"("userId") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "UserTopics" ADD CONSTRAINT "topicId" FOREIGN KEY ("topicId") REFERENCES "Topic"("topicId") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserTopics" ADD CONSTRAINT "userId" FOREIGN KEY ("userId") REFERENCES "User"("userId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Questions" ADD CONSTRAINT "testId" FOREIGN KEY ("testId") REFERENCES "Test"("testId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Test" ADD CONSTRAINT "topicId" FOREIGN KEY ("topicId") REFERENCES "Topics"("topicId") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Test" ADD CONSTRAINT "topicId" FOREIGN KEY ("topicId") REFERENCES "Topic"("topicId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Test" ADD CONSTRAINT "userId" FOREIGN KEY ("userId") REFERENCES "User"("userId") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Topics" ADD CONSTRAINT "userId" FOREIGN KEY ("userId") REFERENCES "User"("userId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UserAnswers" ADD CONSTRAINT "attemptId" FOREIGN KEY ("attemptId") REFERENCES "UserAttempts"("attemptId") ON DELETE CASCADE ON UPDATE CASCADE;
