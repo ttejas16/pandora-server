@@ -81,7 +81,7 @@ async function createTopic(req, res) {
         }
     })
 
-    res.status(200).json({ success: true, data: topic });
+    res.status(200).json({ success: true, data: { ...topic, isOwner: topic.ownerId == req.user.id } });
 }
 
 async function joinTopicByCode(req, res) {
@@ -113,7 +113,7 @@ async function joinTopicByCode(req, res) {
         }
     })
 
-    res.status(200).json({ success: true, data: topic });
+    res.status(200).json({ success: true, data: { ...topic, isOwner: topic.ownerId == req.user.id } });
 }
 
 
@@ -123,7 +123,7 @@ async function getTopicsByUserId(req, res) {
         return;
     }
 
-    const topics = await prisma.user.findUnique({
+    const result = await prisma.user.findUnique({
         where: { userId: req.user.id },
         include: {
             topics: {
@@ -140,8 +140,8 @@ async function getTopicsByUserId(req, res) {
 
     })
 
-    const parsedTopics = topics.topics.map(t => { 
-        return { topicId: t.topicId, ...t.topic };
+    const parsedTopics = result.topics.map(t => {
+        return { topicId: t.topicId, ...t.topic, isOwner: t.topic.ownerId == req.user.id };
     })
 
     res.json({ success: true, data: parsedTopics });
@@ -165,13 +165,13 @@ async function getUsersByTopicId(req, res) {
         where: { topicId: topicId },
         include: {
             users: {
-                include: { user: { select: { username: true, email: true, userId:true  } } }
+                include: { user: { select: { username: true, email: true, userId: true } } }
             }
         }
     });
 
     const topicUsers = result.users.map(u => u.user);
-    const parsedResult = { ...result, users:topicUsers }
+    const parsedResult = { ...result, users: topicUsers }
 
     res.status(200).json({ success: true, data: parsedResult });
 }

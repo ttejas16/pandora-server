@@ -1,8 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../prisma/prisma');
-const COOKIE_EXPIRY_TIME = 60 * 60 * 2;
-const JWT_EXPIRY_TIME = 60 * 60 * 1.5;
+const COOKIE_MAX_AGE = 28 * 24 * 60 * 60 * 1000;
+const JWT_EXPIRY_TIME = 28 * 24 * 60 * 60 * 1000;
 
 function createToken(payload) {
   const token = jwt.sign({ ...payload }, process.env.SECRET_KEY, { expiresIn: JWT_EXPIRY_TIME });
@@ -124,7 +124,7 @@ async function login(req, res) {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      expires: new Date(Date.now() + COOKIE_EXPIRY_TIME)
+      maxAge: COOKIE_MAX_AGE
     });
     
 
