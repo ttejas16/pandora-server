@@ -176,10 +176,70 @@ async function getUsersByTopicId(req, res) {
     res.status(200).json({ success: true, data: parsedResult });
 }
 
+async function createTest(req, res) {
+    const topicId = req.body.topicId;
+    const title = req.body.title;
+    const description = req.body.description;
+    const questions = req.body.questions;
+    // console.log(questions);
+    
+
+    if (!topicId || !title || !description || !questions) {
+        res.status(400).json({ success: false, msg: "Expected topic id and question data!" });
+        return;
+    }
+
+    const test = await prisma.test.create({
+        data: {
+            title: title,
+            description: description,
+            topicId: topicId,
+            userId: req.user.id
+        }
+    });
+
+    questions.forEach(async (q) => {
+        await prisma.questions.create({
+            data: {
+                // testId: test.testId,
+                question: q.question,
+                options: JSON.stringify(q.options),
+                answer: q.correctOption,
+                test: { connect:{ testId: test.testId } }
+            }
+        })
+    });
+    
+
+    res.status(200).json({ success: true, msg: "Create Test success", data: { testId: test.testId } });
+}
+
+
+async function getTestsByTopicId(req, res) {
+    const topicId = req.query.topicId;
+
+    if (!topicId) {
+        res.status(400).json({ success: false, msg: "expected a topic id!" });
+        return;
+    }
+
+    const tests = await prisma.test.findMany({
+        where: { topicId: topicId }
+    })
+
+    // console.log(tests);
+    
+
+    res.status(200).json({ success: true, data: { tests } });
+
+}
+
 
 module.exports = {
     createTopic,
     getTopicsByUserId,
     joinTopicByCode,
-    getUsersByTopicId
+    getUsersByTopicId,
+    createTest,
+    getTestsByTopicId
 };
