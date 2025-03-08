@@ -105,6 +105,11 @@ async function joinTopicByCode(req, res) {
         res.status(400).json({ success: false, msg: "Topic does not exist!" });
         return;
     }
+    if(topic.ownerId == req.user.id){
+        res.status(400).json({success: false,msg:"You Are Owner of Topic"});
+        return;
+    }
+    
 
     const _ = await prisma.userTopics.create({
         data: {
@@ -234,6 +239,50 @@ async function getTestsByTopicId(req, res) {
 
 }
 
+async function getQuestionsByTestId(req,res){
+    const testId = req.body.testId;
+    const userId = req.user.id;
+
+    if(!testId){
+        res.status(400).json({ success: false, msg: " test Id Required" });
+        return;
+    }
+
+    const test = await prisma.test.findUnique({
+        where : { testId : testId}
+    });
+
+    if(!test){
+        res.status(400).json({ success: false, msg: " No Test Found " });
+        return;
+    }
+    if(test.startTime > new Date.now()){
+        res.status(304).json({ success: false, msg: "Test has Not Yet Started" });
+        return;
+    }
+    if(test.endTime <= new Date.now()){
+        res.status(304).json({ success: false, msg: "Test has Ended" });
+        return;
+    }
+
+    const questions = await prisma.questions.findMany({
+        where : { testId : testId},
+        omit: {
+           answer : true,
+           createdAt : true
+        }
+    });
+
+
+    res.setStatus(200).json({sucess : true , questions : questions}) ;
+
+    
+    
+}
+
+async function submitTest(req,res){
+    
+}
 
 module.exports = {
     createTopic,

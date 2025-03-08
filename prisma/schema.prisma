@@ -7,86 +7,77 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  userId       String         @id @default(uuid()) @db.Uuid
-  email        String         @unique
-  username     String         @unique        
-  password     String        
-  createdAt    DateTime       @db.Timestamp(6) @default(now())
-  topics       UserTopics[]
-  Test         Test[]
-  UserAttempts UserAttempts[]
-  createdTopics Topic[]   @relation("TopicOwner")
+  userId    String       @id @default(uuid()) @db.Uuid
+  email     String       @unique
+  username  String       @unique
+  password  String
+  createdAt DateTime     @default(now()) @db.Timestamp(6)
+  topics    UserTopics[]
+  Test      Test[]
+
+  createdTopics Topic[]       @relation("TopicOwner")
+  Submissions   Submissions[]
 }
 
 model Topic {
-  topicId      String         @id @default(uuid()) @db.Uuid
-  ownerId      String         @db.Uuid 
-  owner        User           @relation("TopicOwner", fields: [ownerId], references: [userId], onDelete: Cascade, map: "userId")
-  topicName    String         
-  topicSubtitle String        
-  isPublic     Boolean        
-  topicCode    String         
-  thumbnailUrl String         
-  createdAt    DateTime       @db.Timestamp(6) @default(now())
-  users        UserTopics[]
-  Test         Test[]
+  topicId       String       @id @default(uuid()) @db.Uuid
+  ownerId       String       @db.Uuid
+  owner         User         @relation("TopicOwner", fields: [ownerId], references: [userId], onDelete: Cascade, map: "userId")
+  topicName     String
+  topicSubtitle String
+  isPublic      Boolean
+  topicCode     String
+  thumbnailUrl  String
+  createdAt     DateTime     @default(now()) @db.Timestamp(6)
+  users         UserTopics[]
+  Test          Test[]
 }
 
 model UserTopics {
-  topic     Topic    @relation(fields: [topicId], references: [topicId], onDelete: Cascade, map: "topicId")
-  topicId   String    @db.Uuid
-  user      User      @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
-  userId    String    @db.Uuid
-  joinedAt  DateTime? @db.Timestamp(6)
+  topic    Topic     @relation(fields: [topicId], references: [topicId], onDelete: Cascade, map: "topicId")
+  topicId  String    @db.Uuid
+  user     User      @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
+  userId   String    @db.Uuid
+  joinedAt DateTime? @db.Timestamp(6)
+
   @@id([userId, topicId])
 }
 
 model Test {
-  testId       String         @id @default(uuid()) @db.Uuid
-  topicId      String         @db.Uuid
-  topic        Topic          @relation(fields: [topicId], references: [topicId], onDelete: Cascade, map: "topicId")
-  userId       String         @db.Uuid
-  user         User           @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
-  title        String         
-  description  String
-  startTime    DateTime?      @db.Timestamp(6)
-  endTime      DateTime?      @db.Timestamp(6)
-  createdAt    DateTime       @db.Timestamp(6) @default(now())
-  questions    Questions[]
-  UserAttempts UserAttempts[]
+  testId      String      @id @default(uuid()) @db.Uuid
+  topicId     String      @db.Uuid
+  topic       Topic       @relation(fields: [topicId], references: [topicId], onDelete: Cascade, map: "topicId")
+  userId      String      @db.Uuid
+  user        User        @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
+  title       String
+  description String
+  startTime   DateTime?   @db.Timestamp(6)
+  endTime     DateTime?   @db.Timestamp(6)
+  createdAt   DateTime    @default(now()) @db.Timestamp(6)
+  questions   Questions[]
+
+  Submissions Submissions[]
 }
 
 model Questions {
-  questionId  String        @id @default(uuid()) @db.Uuid
-  testId      String        @db.Uuid
-  test        Test          @relation(fields: [testId], references: [testId], onDelete: Cascade, map: "testId")
-  question    String
-  options     Json          @db.Json
-  answer      String
-  createdAt   DateTime      @db.Timestamp(6) @default(now())
-  UserAnswers UserAnswers[]
+  questionId String   @id @default(uuid()) @db.Uuid
+  testId     String   @db.Uuid
+  test       Test     @relation(fields: [testId], references: [testId], onDelete: Cascade, map: "testId")
+  question   String
+  options    Json     @db.Json
+  answer     String
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
 }
 
-
-model UserAnswers {
-  attemptId    String       @db.Uuid
-  questionId          String       @db.Uuid
-  answer       String
-  userAnsId    String       @id @db.Uuid
-  UserAttempts UserAttempts @relation(fields: [attemptId], references: [attemptId], onDelete: Cascade, map: "attemptId")
-  Questions    Questions    @relation(fields: [questionId], references: [questionId], onDelete: Cascade, map: "qId")
-}
-
-model UserAttempts {
-  attemptId    String        @id @db.Uuid
-  testId       String        @db.Uuid
-  userId       String        @db.Uuid
-  startedAt   DateTime      @db.Timestamp(6)
-  completedAt DateTime      @db.Timestamp(6)
-  score        BigInt
-  UserAnswers  UserAnswers[]
-  Test         Test          @relation(fields: [testId], references: [testId], onDelete: Cascade, map: "testId")
-  User         User          @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
+model Submissions {
+  attemptId   String   @id @db.Uuid
+  userId      String   @db.Uuid
+  testId      String   @db.Uuid
+  questionId  String   @db.Uuid
+  startedAt   DateTime @db.Timestamp(6)
+  completedAt DateTime @db.Timestamp(6)
+  userAnswer  String
+  Test        Test     @relation(fields: [testId], references: [testId], onDelete: Cascade, map: "testId")
+  User        User     @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
 }
