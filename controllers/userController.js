@@ -105,11 +105,11 @@ async function joinTopicByCode(req, res) {
         res.status(400).json({ success: false, msg: "Topic does not exist!" });
         return;
     }
-    if(topic.ownerId == req.user.id){
-        res.status(400).json({success: false,msg:"You Are Owner of Topic"});
+    if (topic.ownerId == req.user.id) {
+        res.status(400).json({ success: false, msg: "You Are Owner of Topic" });
         return;
     }
-    
+
 
     const _ = await prisma.userTopics.create({
         data: {
@@ -187,7 +187,7 @@ async function createTest(req, res) {
     const description = req.body.description;
     const questions = req.body.questions;
     // console.log(questions);
-    
+
 
     if (!topicId || !title || !description || !questions) {
         res.status(400).json({ success: false, msg: "Expected topic id and question data!" });
@@ -210,11 +210,11 @@ async function createTest(req, res) {
                 question: q.question,
                 options: JSON.stringify(q.options),
                 answer: q.correctOption,
-                test: { connect:{ testId: test.testId } }
+                test: { connect: { testId: test.testId } }
             }
         })
     });
-    
+
 
     res.status(200).json({ success: true, msg: "Create Test success", data: { testId: test.testId } });
 }
@@ -229,59 +229,94 @@ async function getTestsByTopicId(req, res) {
     }
 
     const tests = await prisma.test.findMany({
-        where: { topicId: topicId }
+        where: { topicId: topicId },
+        include: { _count: { select: { questions: true } } }
     })
 
-    // console.log(tests);
-    
-
     res.status(200).json({ success: true, data: { tests } });
-
 }
 
-async function getQuestionsByTestId(req,res){
-    const testId = req.body.testId;
+async function getQuestionsByTestId(req, res) {
+    const testId = req.query.testId;
     const userId = req.user.id;
 
-    if(!testId){
+    if (!testId) {
         res.status(400).json({ success: false, msg: " test Id Required" });
         return;
     }
 
     const test = await prisma.test.findUnique({
-        where : { testId : testId}
+        where: { testId: testId }
     });
 
-    if(!test){
+    if (!test) {
         res.status(400).json({ success: false, msg: " No Test Found " });
         return;
     }
-    if(test.startTime > new Date.now()){
-        res.status(304).json({ success: false, msg: "Test has Not Yet Started" });
-        return;
-    }
-    if(test.endTime <= new Date.now()){
-        res.status(304).json({ success: false, msg: "Test has Ended" });
-        return;
-    }
+
+    // start time is not necessary i guess when test is posted we start at that time
+    // if (test.startTime > new Date.now()) {
+    //     res.status(304).json({ success: false, msg: "Test has Not Yet Started" });
+    //     return;
+    // }
+
+    // if (test.endTime <= new Date.now()) {
+    //     res.status(304).json({ success: false, msg: "Test has Ended" });
+    //     return;
+    // }
 
     const questions = await prisma.questions.findMany({
-        where : { testId : testId},
+        where: { testId: testId },
         omit: {
-           answer : true,
-           createdAt : true
+            answer: true,
+            createdAt: true
         }
     });
 
+    const parsedQuestions = questions.map(q => {
+        return {
+            ...q,
+            options: JSON.parse(q.options)
+        }
+    })
+    // console.log(parsedQuestions);
 
-    res.setStatus(200).json({sucess : true , questions : questions}) ;
-
-    
-    
+    res.status(200).json({ success: true, data: { questions: parsedQuestions } });
 }
 
-async function submitTest(req,res){
-    
+async function submitTest(req, res) {
+    const testId = req.body.testId;
+    const answers = req.body.answers;
+
+    if (!req.user.id) {
+        res.status(403).json({ success: false, msg: "Unauthorised" });
+        return;
+    }
+
+    if (!testId || !answers) {
+        res.status(400).json({ success: false, msg: "expected testId and answer data!" });
+        return;
+    }
+
+    const test = await prisma.test.findUnique({ where: { testId: testId } });
+    if (test.userId == req.user.id) {
+        res.status(400).json({ success: false, msg: "test owners cant take a test!" });
+        return;
+    }
+
+
+    for (const [questionId, answer] of Object.entries(answers)) {
+        await prisma.submissions.create({
+            data:{
+                testId: testId,
+                userId: req.user.id,
+                questionId: questionId,
+                userAnswer: answer
+            }
+        })
+    }
+
+    res.status(200).json({ success: true, msg: "Submit successfull" });
 }
 
 module.exports = {
@@ -290,5 +325,7 @@ module.exports = {
     joinTopicByCode,
     getUsersByTopicId,
     createTest,
-    getTestsByTopicId
+    getTestsByTopicId,
+    getQuestionsByTestId,
+    submitTest
 };

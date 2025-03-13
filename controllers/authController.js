@@ -14,7 +14,7 @@ function createToken(payload) {
 async function getUserById(req, res) {
   let resultUser = null;
   // console.log(req.user);
-  
+
 
   try {
 
@@ -82,7 +82,7 @@ async function getUserByUserName(req, res) {
 
 async function login(req, res) {
   // console.log(req.body);
-  
+
   const username = req.body.username;
   const password = req.body.password;
 
@@ -119,14 +119,14 @@ async function login(req, res) {
     }
 
     const token = createToken({ username: user.username, id: user.userId });
-    
+
     res.cookie('accessToken', token, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
       maxAge: COOKIE_MAX_AGE
     });
-    
+
 
   } catch (err) {
     console.log(err)
@@ -213,4 +213,15 @@ async function signup(req, res) {
 }
 
 
-module.exports = { login, signup, getUserById, getUserByEmail, getUserByUserName };
+async function logout(req, res) {
+  if (!req.user.id) {
+    res.status(403).json({ success: false, msg: "Unauthorised!" });
+    return;
+  }
+
+  res.cookie("accessToken", "", { expires: new Date(Date.now()) });
+
+  res.status(200).json({ success: true, msg: "Logged out" });
+}
+
+module.exports = { login, signup, getUserById, getUserByEmail, getUserByUserName, logout };

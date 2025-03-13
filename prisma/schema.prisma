@@ -71,12 +71,12 @@ model Questions {
 }
 
 model Submissions {
-  attemptId   String   @id @db.Uuid
+  attemptId   String   @id @default(uuid()) @db.Uuid
   userId      String   @db.Uuid
   testId      String   @db.Uuid
   questionId  String   @db.Uuid
-  startedAt   DateTime @db.Timestamp(6)
-  completedAt DateTime @db.Timestamp(6)
+  startedAt   DateTime? @db.Timestamp(6)
+  completedAt DateTime @default(now()) @db.Timestamp(6)
   userAnswer  String
   Test        Test     @relation(fields: [testId], references: [testId], onDelete: Cascade, map: "testId")
   User        User     @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userId")
