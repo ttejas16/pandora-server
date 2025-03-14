@@ -105,8 +105,18 @@ async function joinTopicByCode(req, res) {
         res.status(400).json({ success: false, msg: "Topic does not exist!" });
         return;
     }
+
     if (topic.ownerId == req.user.id) {
-        res.status(400).json({ success: false, msg: "You Are Owner of Topic" });
+        res.status(400).json({ success: false, msg: "You can't join your own topic!" });
+        return;
+    }
+
+    const existingJoinEntry = await prisma.userTopics.findFirst({
+        where: { userId: req.user.id, topicId: topic.topicId }
+    })
+
+    if (existingJoinEntry) {
+        res.status(400).json({ success: false, msg: "Topic Already Joined!" });
         return;
     }
 
@@ -307,7 +317,7 @@ async function submitTest(req, res) {
 
     for (const [questionId, answer] of Object.entries(answers)) {
         await prisma.submissions.create({
-            data:{
+            data: {
                 testId: testId,
                 userId: req.user.id,
                 questionId: questionId,
