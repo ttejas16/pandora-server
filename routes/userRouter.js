@@ -13,7 +13,7 @@ userRouter.get('/getTests', userController.getTestsByTopicId);
 userRouter.get('/getQuestions', userController.getQuestionsByTestId);
 userRouter.post('/submitTest', userController.submitTest);
 userRouter.get('/searchTopics', userController.searchTopicByTitle);
-
+userRouter.delete('/deleteTest', userController.deleteTestById);
 
 // analytics route
 userRouter.get('/getTestAnalytics', getTestAnalytics);

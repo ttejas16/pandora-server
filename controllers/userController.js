@@ -160,7 +160,7 @@ async function getTopicsByUserId(req, res) {
     })
 
     // console.log(parsedTopics);
-    
+
 
     res.json({ success: true, data: parsedTopics });
 }
@@ -319,6 +319,29 @@ async function searchTopicByTitle(req, res) {
     res.status(200).json({ success: true, data: { searchResults: parsedTopics } });
 }
 
+async function deleteTestById(req, res) {
+    const testId = req.query.testId;
+
+    if (!testId) {
+        res.status(400).json({ success: false, msg: "Expected a test id!" });
+        return;
+    }
+
+    try {
+        const deletedTest = await prisma.test.delete({
+            where: { testId: testId }
+        });
+
+        res.status(200).json({ success: true, data: { deletedTestId: deletedTest.testId } });
+        return;
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ success: false, msg: "Something went wrong!" });
+        return;
+    }
+}
+
 async function submitTest(req, res) {
     const testId = req.body.testId;
     const answers = req.body.answers;
@@ -365,5 +388,6 @@ module.exports = {
     getTestsByTopicId,
     getQuestionsByTestId,
     submitTest,
-    searchTopicByTitle
+    searchTopicByTitle,
+    deleteTestById
 };
