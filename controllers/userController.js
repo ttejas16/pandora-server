@@ -159,6 +159,9 @@ async function getTopicsByUserId(req, res) {
         return { topicId: t.topicId, ...t.topic, isOwner: t.topic.ownerId == req.user.id };
     })
 
+    // console.log(parsedTopics);
+    
+
     res.json({ success: true, data: parsedTopics });
 }
 
@@ -294,6 +297,28 @@ async function getQuestionsByTestId(req, res) {
     res.status(200).json({ success: true, data: { questions: parsedQuestions } });
 }
 
+async function searchTopicByTitle(req, res) {
+    const searchQuery = req.query.topicName;
+
+    if (!searchQuery) {
+        res.status(400).json({ success: false, msg: "Expected a search title!" });
+        return;
+    }
+
+    const searchResults = await prisma.topic.findMany({
+        where: {
+            topicName: { contains: searchQuery, mode: "insensitive" },
+            isPublic: true
+        }
+    });
+
+    const parsedTopics = searchResults.map(t => {
+        return { ...t, isOwner: t.ownerId == req.user.id };
+    })
+
+    res.status(200).json({ success: true, data: { searchResults: parsedTopics } });
+}
+
 async function submitTest(req, res) {
     const testId = req.body.testId;
     const answers = req.body.answers;
@@ -337,5 +362,6 @@ module.exports = {
     createTest,
     getTestsByTopicId,
     getQuestionsByTestId,
-    submitTest
+    submitTest,
+    searchTopicByTitle
 };
