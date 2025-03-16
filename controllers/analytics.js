@@ -25,18 +25,32 @@ async function getTestAnalytics(req, res) {
 
     const submissionCount = testSubmissions.length;
     const { maxMarks, userScoreMap } = await getScoresByTestId(testId);
+    // maxMarks is a number and
+    // userScoreMap is an object of structure { [userId]:{ userName:string, score:number } }
 
-    // console.log("maximum marks: ", maxMarks);
-    // console.log("total submissions: ", submissionCount);
-    // console.log("userScore map: ", userScoreMap);
-    // console.log("avg: ", getTestAvg(userScoreMap));
-    
+    const testAvg = getTestAvg(userScoreMap);
+    const markDistribution = getMarksDistribution(maxMarks, userScoreMap);
 
+    // console.log(submissionCount,
+    //     maxMarks,
+    //     testAvg,
+    //     markDistribution,
+    //     userScoreMap);
 
-    res.status(200).json({ success: true, data: {} });
+    res.status(200).json({
+        success: true,
+        data: {
+            submissionCount,
+            maxMarks,
+            testAvg,
+            markDistribution,
+            userScoreMap
+        }
+    });
 }
 
 async function getScoresByTestId(testId) {
+    // structure of userScoreMap { [userId]:{ userName:"", email:"", score:0 } }
     const userScoreMap = {};
 
     // get a mapping of every questionId to its correct answer
@@ -44,7 +58,7 @@ async function getScoresByTestId(testId) {
     const test = await prisma.test.findUnique({
         where: { testId },
         include: {
-            questions: true
+            questions: true,
         }
     });
 
@@ -53,21 +67,37 @@ async function getScoresByTestId(testId) {
     })
 
     const submissions = await prisma.submissions.findMany({
-        where: { testId: testId }
+        where: { testId: testId }, include: { User: true }
     });
 
     submissions.forEach(s => {
         if (!userScoreMap[s.userId]) {
-            userScoreMap[s.userId] = 0;
+            userScoreMap[s.userId] = { userName: s.User.username, email: s.User.email, score: 0 }
         }
         // console.log("ans - ",s.userAnswer, correctAnswerMap[s.questionId]);
 
         if (s.userAnswer == correctAnswerMap[s.questionId]) {
-            userScoreMap[s.userId] += 1;
+            userScoreMap[s.userId].score += 1;
         }
     });
 
-    return { userScoreMap: userScoreMap, maxMarks: test.questions.length };
+    const sortedUserScoreMapDesc = {};
+    const entries = [];
+    
+    for (const userId in userScoreMap) {
+        entries.push([userId, userScoreMap[userId]]);
+    }
+
+    // sort by descending order of scores
+    entries.sort(([, a], [, b]) => b.score - a.score);
+    entries.forEach(([k, v]) => {
+        sortedUserScoreMapDesc[k] = v;
+    })
+
+    return {
+        userScoreMap: sortedUserScoreMapDesc,
+        maxMarks: test.questions.length
+    };
 }
 //-----------JUST CHANGE THE NAME -------//
 async function getSomethingByTestId(req,res){
@@ -169,12 +199,35 @@ console.log(data);
 
 }
 
-function getTestAvg(scoreMap){
+function getTestAvg(scoreMap) {
     const values = Object.values(scoreMap);
-    const avg =  values.reduce((acc, value) => acc + value, 0) / values.length;
+    if (values.length == 0) {
+        return 0.000;
+    }
+
+    const avg = values.reduce((acc, obj) => acc + obj.score, 0) / values.length;
     return avg.toFixed(3);
 }
 
+function getMarksDistribution(maxMarks, userScoreMap) {
+    // get a map of each mark 0,1,2,... to number of users with those marks
+    const distribution = {};
+    Object.values(userScoreMap).sort((a, b) => a.score - b.score).forEach(obj => {
+        if (!distribution[obj.score]) {
+            distribution[obj.score] = 0;
+        }
+
+        distribution[obj.score] += 1;
+    });
+
+    // parse this map to fit data structure required for chart.js i.e array of objects [{ x:number, y:number }]
+    let result = [];
+    for (const key in distribution) {
+        result.push({ x: parseInt(key), y: distribution[key] })
+    }
+
+    return result;
+}
 
 module.exports = {
     getTestAnalytics,
