@@ -30,6 +30,7 @@ app.use(verifyToken);
 
 app.use('/auth', authRouter);
 app.use('/user', userRouter);
+app.use('/test', testRouter);
 
 app.get("/", (req, res) => {
     res.status(200).json("hello world from server");

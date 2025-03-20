@@ -1,6 +1,6 @@
 const express = require('express');
 const testRouter = express.Router();
-const { getScoresByQuestionId, getSomethingByTestId } = require('../controllers/analytics');
+const { getScoresByQuestionId, getQuestionAnalytics } = require('../controllers/analytics');
 
 
 
@@ -14,5 +14,5 @@ testRouter.get("/qData",(req,res)=>{
 
     //res.json("ERRRRROR")
 });
-testRouter.get("/getQDataByTestId",getSomethingByTestId)
+testRouter.get("/getQuestionAnalytics", getQuestionAnalytics);
 module.exports = testRouter;
