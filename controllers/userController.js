@@ -346,7 +346,9 @@ async function submitTest(req, res) {
                 testId: testId,
                 userId: req.user.id,
                 questionId: questionId,
-                userAnswer: answer
+                userAnswer: answer,
+                //TEMP CODE ADDING STARTED TIME AS CURRENT TIME
+                startedAt: new Date(Date.now())
             }
         })
     }

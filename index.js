@@ -4,10 +4,11 @@ const cors = require("cors");
 const morgan = require("morgan"); // helps in debugging
 const cookieParser = require('cookie-parser');
 
-const authRouter = require("./routes/authRouter");
 const { verifyToken } = require("./middleware/verifyToken");
 const { testDatabase } = require('./prisma/prisma');
 const userRouter = require("./routes/userRouter");
+const authRouter = require("./routes/authRouter");
+const testRouter = require("./routes/testRouter");
 
 const port = 3000;
 
@@ -34,6 +35,7 @@ app.get("/", (req, res) => {
     res.status(200).json("hello world from server");
 })
 
+app.use("/test",testRouter);
 app.listen(port, () => {
     console.log(`server is listening at port ${port}`);
     testDatabase();
