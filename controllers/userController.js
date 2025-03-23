@@ -2,41 +2,6 @@
 const { prisma } = require('../prisma/prisma');
 const { nanoid } = require('nanoid');
 
-const users = {
-    "john_doe": { "name": "John Doe", "email": "john@example.com" },
-    "jane_doe": { "name": "Jane Doe", "email": "jane@example.com" },
-    "alice_smith": { "name": "Alice Smith", "email": "alice@example.com" },
-    "bob_jones": { "name": "Bob Jones", "email": "bob@example.com" }
-};
-
-// async function profile(req, res) {
-//     try {
-//         console.log(req.cookies)
-//         const token = req.cookies.accessToken;
-//         const decoded = jwt.verify(token, process.env.SECRET_KEY);
-//         console.log(" this is userController decoded jwt" + decoded)
-//         const username = decoded.username;
-//         const userDetails = users[username];
-
-//         if (!userDetails) {
-//             return res.status(404).json({ message: 'User not found' });
-//         }
-
-//         // const newToken = createToken({ username });
-//         // res.cookie('accessToken', newToken, {
-//         //     httpOnly: true,
-//         //     secure: true,
-//         //     sameSite: "none",
-//         //     expires: new Date(Date.now() + 65 * 60 * 1000)
-//         // });
-
-//         res.json({ userDetails });
-//     } catch (error) {
-//         console.log(error)
-//         res.status(401).json({ message: 'Unauthorized' });
-//     }
-// }
-
 async function createTopic(req, res) {
     let { title, subTitle, type } = req.body;
 
@@ -197,6 +162,7 @@ async function getUsersByTopicId(req, res) {
 async function createTest(req, res) {
     const topicId = req.body.topicId;
     const title = req.body.title;
+    const endDate = req.body.endDate;
     const description = req.body.description;
     const questions = req.body.questions;
     // console.log(questions);
@@ -212,7 +178,8 @@ async function createTest(req, res) {
             title: title,
             description: description,
             topicId: topicId,
-            userId: req.user.id
+            userId: req.user.id,
+            endTime: new Date(endDate)
         }
     });
 
@@ -243,7 +210,15 @@ async function getTestsByTopicId(req, res) {
 
     const tests = await prisma.test.findMany({
         where: { topicId: topicId },
-        include: { _count: { select: { questions: true } } }
+        include: {
+            _count: { select: { questions: true } },
+            // this is to check if user has already submitted the test
+            Submissions: {
+                where: { userId: req.user.id },
+                select: { userId: true },
+                distinct: ["userId"]
+            }
+        }
     })
 
     res.status(200).json({ success: true, data: { tests } });
@@ -362,6 +337,10 @@ async function submitTest(req, res) {
         return;
     }
 
+    if (test.endTime && new Date(Date.now()) > test.endTime) {
+        res.status(400).json({ success: false, msg: "Test already ended!" });
+        return;
+    }
 
     for (const [questionId, answer] of Object.entries(answers)) {
         await prisma.submissions.create({

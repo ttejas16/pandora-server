@@ -140,7 +140,7 @@ async function getQuestionAnalytics(req, res) {
     }
     // console.log(JSON.stringify(data, null, 1));
 
-    res.status(200).json({ success: true, data: data });
+    res.status(200).json({ success: true, data: { questionData: data } });
 
 }
 
