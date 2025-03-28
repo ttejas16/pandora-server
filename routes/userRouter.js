@@ -14,6 +14,7 @@ userRouter.get('/getQuestions', userController.getQuestionsByTestId);
 userRouter.post('/submitTest', userController.submitTest);
 userRouter.get('/searchTopics', userController.searchTopicByTitle);
 userRouter.delete('/deleteTest', userController.deleteTestById);
+userRouter.get('/getThumbnails', userController.getThumbnailUrls);
 
 // analytics route
 userRouter.get('/getTestAnalytics', getTestAnalytics);

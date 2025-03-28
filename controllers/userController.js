@@ -1,9 +1,19 @@
 // const jwt = require('jsonwebtoken');
 const { prisma } = require('../prisma/prisma');
 const { nanoid } = require('nanoid');
+const { thumbnailUrls } = require('../utils/thumbnails');
+
+async function getThumbnailUrls(req, res) {
+    if (!req.user.id) {
+        res.status(400).json({ success: false, msg: "Unauthorised!" });
+        return;
+    }
+
+    res.json({ success: true, data: { thumbnailUrls: thumbnailUrls } });
+}
 
 async function createTopic(req, res) {
-    let { title, subTitle, type } = req.body;
+    let { title, subTitle, type, thumbnailUrl } = req.body;
 
     if (type != "public" && type != "private") {
         res.status(400).json({ success: false, msg: "Unknown topic type" });
@@ -34,7 +44,7 @@ async function createTopic(req, res) {
             topicSubtitle: subTitle,
             isPublic: type == "public" ? true : false,
             ownerId: req.user.id,
-            thumbnailUrl: "https://www.freepik.com/free-photo/galaxy-nature-aesthetic-background-starry-sky-mountain-remixed-media_17226410.htm#fromView=search&page=1&position=4&uuid=9e700a6d-69fa-439e-9ad0-01adc9fe9b90&query=space",
+            thumbnailUrl: thumbnailUrl || thumbnailUrls[0],
             topicCode: generatedTopicCode,
         }
     })
@@ -359,6 +369,7 @@ async function submitTest(req, res) {
 }
 
 module.exports = {
+    getThumbnailUrls,
     createTopic,
     getTopicsByUserId,
     joinTopicByCode,
