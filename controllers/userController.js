@@ -341,7 +341,16 @@ async function submitTest(req, res) {
         return;
     }
 
-    const test = await prisma.test.findUnique({ where: { testId: testId } });
+    const test = await prisma.test.findUnique({ 
+        where: { testId: testId }, 
+        include:{
+            Submissions: {
+                where: { userId: req.user.id },
+                select: { userId: true },
+                distinct: ["userId"]
+            }
+        }
+    });
     if (test.userId == req.user.id) {
         res.status(400).json({ success: false, msg: "test owners cant take a test!" });
         return;
@@ -349,6 +358,11 @@ async function submitTest(req, res) {
 
     if (test.endTime && new Date(Date.now()) > test.endTime) {
         res.status(400).json({ success: false, msg: "Test already ended!" });
+        return;
+    }
+
+    if (test.Submissions.length) {
+        res.status(400).json({ success: false, msg: "Already submitted!" });
         return;
     }
 
